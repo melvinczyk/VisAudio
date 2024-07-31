@@ -8,11 +8,42 @@ from pathlib import Path
 # from tkinter import *
 # Explicit imports to satisfy Flake8
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
+import tkinter as tk
+from actions import system_operations
+from tkinter import messagebox
+import os
 
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path(r"C:\Users\Nick\Documents\VisAudio\build\assets\frame0")
 
+# Functions
+def select_audio_file():
+    system_operations.select_file(entry_2)
+
+def select_download_dir():
+    system_operations.select_directory(entry_3)
+
+def check_input():
+    if entry_1.get() and entry_2.get():
+        entry_1.delete(0, 'end')
+        entry_2.delete(0, 'end')
+        canvas.itemconfig(status_text, text=" Error: both fields entered", fill="#fc0303")
+    elif entry_1.get():
+        # TODO YouTube link download function
+        pass
+    elif entry_2.get():
+        if os.path.exists(entry_2.get()):
+            print("File exists")
+        else:
+            canvas.itemconfig(status_text, text=f" File DNE: {os.path.basename(entry_2.get())}", fill='#fc0303')
+            entry_2.delete(0, 'end')
+            return
+        # TODO implement file conversion logic
+        canvas.itemconfig(status_text, text=" File Inputted", fill='#03fc0b')
+        pass
+    else:
+        canvas.itemconfig(status_text, text=" Not Submitted", fill="#fcd303")
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
@@ -440,7 +471,7 @@ button_4 = Button(
     image=button_image_4,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_4 clicked"),
+    command=check_input,
     relief="flat"
 )
 button_4.place(
@@ -450,12 +481,12 @@ button_4.place(
     height=48.0
 )
 
-canvas.create_text(
+status_text = canvas.create_text(
     415.0,
     303.0,
     anchor="nw",
-    text="text",
-    fill="#FFFFFF",
+    text=" Not Submitted",
+    fill="#fcd303",
     font=("Inika Bold", 24 * -1)
 )
 
@@ -497,7 +528,7 @@ button_7 = Button(
     image=button_image_7,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_7 clicked"),
+    command=select_audio_file,
     relief="flat"
 )
 button_7.place(
@@ -513,7 +544,7 @@ button_8 = Button(
     image=button_image_8,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_8 clicked"),
+    command=select_download_dir,
     relief="flat"
 )
 button_8.place(
@@ -522,5 +553,8 @@ button_8.place(
     width=66.0,
     height=56.0
 )
+
+
 window.resizable(False, False)
 window.mainloop()
+
