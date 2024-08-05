@@ -13,11 +13,11 @@ def generate_visual_spectrogram(file_path):
     signal, sr = librosa.load(file_path)
     mel_spec = librosa.power_to_db(np.abs(librosa.stft(y=signal, n_fft=2048, hop_length=512)))
     librosa.display.specshow(mel_spec, fmax=8000,cmap='magma')
-    plt.savefig('../temp/spectrogram.png', bbox_inches='tight', pad_inches=0)
+    plt.savefig('../../temp/spectrogram.png', bbox_inches='tight', pad_inches=0)
 
 
 def load_spectrogram():
-    with Image.open('../temp/spectrogram.png') as img:
+    with Image.open('../../temp/spectrogram.png') as img:
         photo = ImageTk.PhotoImage(img)
         return photo
 
@@ -26,11 +26,11 @@ def generate_visual_waveform(file_path):
     signal, sr = librosa.load(file_path)
     librosa.display.waveshow(y=signal, sr=sr)
     plt.axis('off')
-    plt.savefig('../temp/waveform.png', bbox_inches='tight', pad_inches=0)
+    plt.savefig('../../temp/waveform.png', bbox_inches='tight', pad_inches=0)
 
 
 def load_waveform():
-    with Image.open('../temp/waveform.png') as img:
+    with Image.open('../../temp/waveform.png') as img:
         photo = ImageTk.PhotoImage(img)
         return photo
 

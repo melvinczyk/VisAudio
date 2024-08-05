@@ -1,6 +1,8 @@
+import os.path
 from tkinter import filedialog
 from tkinter import messagebox
 import pathlib
+import requests
 
 
 def select_file(entry):
@@ -18,3 +20,12 @@ def select_directory(entry):
     if dir_path:
         entry.delete(0, 'end')
         entry.insert(0, dir_path)
+
+
+def is_connected():
+    url = "https://www.youtube.com"
+    try:
+        response = requests.get(url, timeout=5)
+        return True
+    except requests.ConnectionError:
+        return False

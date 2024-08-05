@@ -7,16 +7,16 @@ from pathlib import Path
 
 # from tkinter import *
 # Explicit imports to satisfy Flake8
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
-import tkinter as tk
-from actions import system_operations
-from audio import wav_functions
+from tkinter import Tk, Canvas, Entry, Button, PhotoImage
+from src.actions import system_operations
+from src.audio import wav_functions
+from src.audio import youtube_functions
 from tkinter import messagebox
 import os
 
 
-OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"C:\Users\Nick\Documents\VisAudio\build\assets\frame0")
+OUTPUT_PATH = str(Path(__file__).parent)
+ASSETS_PATH = OUTPUT_PATH + r"\assets\frame0"
 
 ### Functions ###
 
@@ -32,12 +32,25 @@ def check_input():
         entry_2.delete(0, 'end')
         canvas.itemconfig(status_text, text=" Error: both fields entered", fill="#fc0303")
     elif entry_1.get():
-        # TODO YouTube link download function
-        pass
+        check_temp()
+        if system_operations.is_connected():
+            try:
+                youtube_functions.view_youtube_audio(entry_1.get())
+                canvas.itemconfig(status_text, text=f" Link Uploaded", fill='#03fc0b')
+                if os.path.isfile('../../temp/spectrogram.png'):
+                    os.remove('../../temp/spectrogram.png')
+                if os.path.isfile('../../temp/waveform.png'):
+                    os.remove('../../temp/waveform.png')
+                show_spectrogram()
+                show_waveform()
+            except Exception as ex:
+                canvas.itemconfig(status_text, text=f" Link Error: {ex}, fill='#fc0303")
+                entry_1.delete(0, 'end')
+
+
     elif entry_2.get():
-        if os.path.exists(entry_2.get()):
-            print("File exists")
-        else:
+        check_temp()
+        if not os.path.exists(entry_2.get()):
             canvas.itemconfig(status_text, text=f" File DNE: {os.path.basename(entry_2.get())}", fill='#fc0303')
             entry_2.delete(0, 'end')
             return
@@ -69,7 +82,14 @@ def show_waveform():
         label2 = tkinter.Label(image=waveform)
         label2.image = waveform
         label2.place(x=975, y=282)
+    elif entry_1.get():
+        wav_functions.generate_visual_waveform(entry_1.get())
+        waveform = wav_functions.load_waveform()
+        label2 = tkinter.Label(image=waveform)
+        label2.image = waveform
+        label2.place(x=975, y=282)
 def download_spectrogram():
+    check_temp()
     if os.path.exists(entry_3.get()) and os.path.exists(entry_2.get()):
         if entry_4.get() and entry_6.get():
             if os.path.exists(f"{os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}_spec{entry_4.get()}x{entry_6.get()}.png")}"):
@@ -83,6 +103,7 @@ def download_spectrogram():
         messagebox.showerror(title="No path given", message="No valid download path or file given")
 
 def download_wavefile():
+    check_temp()
     if os.path.exists(entry_3.get()):
         print("Download wavefile button")
         if entry_5.get() and entry_7.get():
@@ -108,8 +129,20 @@ def download_visual_eq():
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
+def cleanup():
+    try:
+        files = os.listdir('../../temp')
+        for file in files:
+            file_path = os.path.join('../../temp',file)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        window.destroy()
+    except OSError:
+        pass
 
-
+def check_temp():
+    if not os.path.exists('../../temp'):
+        os.makedirs('../../temp')
 
 ### GUI Implementation ###
 
@@ -619,7 +652,7 @@ button_8.place(
     height=56.0
 )
 
-
+window.protocol('WM_DELETE_WINDOW', cleanup)
 window.resizable(False, False)
 window.mainloop()
 
