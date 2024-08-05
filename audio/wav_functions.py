@@ -22,3 +22,16 @@ def load_spectrogram():
         photo = ImageTk.PhotoImage(img)
         return photo
 
+def generate_visual_waveform(file_path):
+    plt.figure(figsize=(6, 2.51))
+    signal, sr = librosa.load(file_path)
+    librosa.display.waveshow(y=signal, sr=sr)
+    plt.axis('off')
+
+    plt.savefig('../temp/waveform.png', bbox_inches='tight', pad_inches=0)
+
+
+def load_waveform():
+    with Image.open('../temp/waveform.png') as img:
+        photo = ImageTk.PhotoImage(img)
+        return photo

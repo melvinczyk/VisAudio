@@ -45,7 +45,10 @@ def check_input():
         canvas.itemconfig(status_text, text=" File Inputted", fill='#03fc0b')
         if os.path.isfile('../../temp/spectrogram.png'):
             os.remove('../../temp/spectrogram.png')
+        if os.path.isfile('../../temp/waveform.png'):
+            os.remove('../../temp/waveform.png')
         show_spectrogram()
+        show_waveform()
         pass
     else:
         canvas.itemconfig(status_text, text=" Not Submitted", fill="#fcd303")
@@ -59,6 +62,13 @@ def show_spectrogram():
         label.place(x=975, y=56.0)
         # canvas.create_image(750, 400, anchor='nw', image=image)
 
+def show_waveform():
+    if entry_2.get():
+        wav_functions.generate_visual_waveform(entry_2.get())
+        waveform = wav_functions.load_waveform()
+        label2 = tkinter.Label(image=waveform)
+        label2.image = waveform
+        label2.place(x=975, y=282)
 def download_spectrogram():
     if os.path.exists(entry_3.get()):
         print("Download spectrogram button")
