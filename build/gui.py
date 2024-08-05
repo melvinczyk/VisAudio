@@ -70,11 +70,18 @@ def show_waveform():
         label2.image = waveform
         label2.place(x=975, y=282)
 def download_spectrogram():
-    if os.path.exists(entry_3.get()):
+    if os.path.exists(entry_3.get()) and os.path.exists(entry_2.get()):
         print("Download spectrogram button")
-        # TODO Implement spectrogram download
+        if entry_4.get() and entry_6.get():
+            if os.path.exists(f"{os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}.png")}"):
+                os.remove(f"{os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}.png")}")
+            wav_functions.generate_download_spectrogram(entry_4.get(), entry_6.get(), entry_2.get(), entry_3.get())
+            if os.path.exists(f"{os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}.png")}"):
+                messagebox.showinfo(title="Download Successful!", message=f"Successfully downloaded to {os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}.png")}")
+        else:
+            messagebox.showerror(title="Dimensions not specified", message="Width or height field is empty")
     else:
-        messagebox.showerror(title="No path given", message="No valid download path given")
+        messagebox.showerror(title="No path given", message="No valid download path or file given")
 
 def download_wavefile():
     if os.path.exists(entry_3.get()):
@@ -89,6 +96,8 @@ def download_visual_eq():
         # TODO Implement spectrogram download
     else:
         messagebox.showerror(title="No path given", message="No valid download path given")
+
+
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
