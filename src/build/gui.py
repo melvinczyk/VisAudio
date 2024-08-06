@@ -17,6 +17,7 @@ import os
 
 OUTPUT_PATH = str(Path(__file__).parent)
 ASSETS_PATH = OUTPUT_PATH + r"\assets\frame0"
+global youtube_path
 
 ### Functions ###
 
@@ -35,23 +36,26 @@ def check_input():
         check_temp()
         if system_operations.is_connected():
             try:
-                youtube_functions.view_youtube_audio(entry_1.get())
+                global youtube_path
+                youtube_path = youtube_functions.view_youtube_audio(entry_1.get())
                 canvas.itemconfig(status_text, text=f" Link Uploaded", fill='#03fc0b')
                 if os.path.isfile('../../temp/spectrogram.png'):
                     os.remove('../../temp/spectrogram.png')
                 if os.path.isfile('../../temp/waveform.png'):
                     os.remove('../../temp/waveform.png')
-                show_spectrogram()
-                show_waveform()
+                show_spectrogram(youtube_path)
+                show_waveform(youtube_path)
             except Exception as ex:
-                canvas.itemconfig(status_text, text=f" Link Error: {ex}, fill='#fc0303")
+                print(ex)
+                canvas.itemconfig(status_text, text=f" Link Error", fill="#fc0303")
                 entry_1.delete(0, 'end')
 
 
     elif entry_2.get():
         check_temp()
-        if not os.path.exists(entry_2.get()):
-            canvas.itemconfig(status_text, text=f" File DNE: {os.path.basename(entry_2.get())}", fill='#fc0303')
+        file_path = entry_2.get()
+        if not os.path.exists(file_path):
+            canvas.itemconfig(status_text, text=f" File DNE: {os.path.basename(file_path)}", fill='#fc0303')
             entry_2.delete(0, 'end')
             return
         # TODO implement file conversion logic
@@ -60,62 +64,92 @@ def check_input():
             os.remove('../../temp/spectrogram.png')
         if os.path.isfile('../../temp/waveform.png'):
             os.remove('../../temp/waveform.png')
-        show_spectrogram()
-        show_waveform()
+        show_spectrogram(file_path)
+        show_waveform(file_path)
         pass
     else:
         canvas.itemconfig(status_text, text=" Not Submitted", fill="#fcd303")
 
-def show_spectrogram():
-    if entry_2.get():
-        wav_functions.generate_visual_spectrogram(entry_2.get())
+def show_spectrogram(file_path):
+    if os.path.exists(file_path):
+        wav_functions.generate_visual_spectrogram(file_path)
         spectrogram = wav_functions.load_spectrogram()
         label = tkinter.Label(image=spectrogram)
         label.image =  spectrogram
         label.place(x=975, y=56.0)
         # canvas.create_image(750, 400, anchor='nw', image=image)
 
-def show_waveform():
-    if entry_2.get():
-        wav_functions.generate_visual_waveform(entry_2.get())
+def show_waveform(file_path):
+    if os.path.exists(file_path):
+        wav_functions.generate_visual_waveform(file_path)
         waveform = wav_functions.load_waveform()
         label2 = tkinter.Label(image=waveform)
         label2.image = waveform
         label2.place(x=975, y=282)
-    elif entry_1.get():
-        wav_functions.generate_visual_waveform(entry_1.get())
-        waveform = wav_functions.load_waveform()
-        label2 = tkinter.Label(image=waveform)
-        label2.image = waveform
-        label2.place(x=975, y=282)
+
 def download_spectrogram():
     check_temp()
-    if os.path.exists(entry_3.get()) and os.path.exists(entry_2.get()):
-        if entry_4.get() and entry_6.get():
-            if os.path.exists(f"{os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}_spec{entry_4.get()}x{entry_6.get()}.png")}"):
-                os.remove(f"{os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}_spec.{entry_4.get()}x{entry_6.get()}png")}")
-            wav_functions.generate_download_spectrogram(entry_4.get(), entry_6.get(), entry_2.get(), entry_3.get())
-            if os.path.exists(f"{os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}_spec{entry_4.get()}x{entry_6.get()}.png")}"):
-                messagebox.showinfo(title="Download Successful!", message=f"Successfully downloaded to {os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}_spec{entry_4.get()}x{entry_6.get()}.png")}")
+    try:
+        file_path = ''
+        if os.path.exists(entry_2.get()):
+            file_path = entry_2.get()
+        elif entry_1.get():
+            global youtube_path
+            file_path = youtube_path
+        width = entry_4.get()
+        height = entry_6.get()
+
+        if os.path.exists(entry_3.get()):
+            if os.path.exists(file_path):
+                if width and height:
+                    if os.path.exists(f"{os.path.join(entry_3.get(), f"{Path(file_path).stem}_spec{width}x{height}.png")}"):
+                        os.remove(f"{os.path.join(entry_3.get(), f"{Path(file_path).stem}_spec{width}x{height}.png")}")
+
+                    wav_functions.generate_download_spectrogram(width, height, file_path, entry_3.get())
+                    if os.path.exists(f"{os.path.join(entry_3.get(), f"{Path(file_path).stem}_spec{width}x{height}.png")}"):
+                        messagebox.showinfo(title="Download Successful!", message=f"Successfully downloaded to {os.path.join(entry_3.get(), f"{Path(file_path).stem}_spec{width}x{height}.png")}")
+                else:
+                    messagebox.showerror(title="Dimensions not specified", message="Width or height field is empty")
+            else:
+                messagebox.showerror(title="No path given", message="No valid file given")
         else:
-            messagebox.showerror(title="Dimensions not specified", message="Width or height field is empty")
-    else:
-        messagebox.showerror(title="No path given", message="No valid download path or file given")
+            messagebox.showerror(title="No download path", message="No valid download path given")
+    except Exception as ex:
+        messagebox.showerror(title="Error" ,message=f"{ex}")
 
 def download_wavefile():
     check_temp()
-    if os.path.exists(entry_3.get()):
-        print("Download wavefile button")
-        if entry_5.get() and entry_7.get():
-            if os.path.exists(f"{os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}_waveform{entry_5.get()}x{entry_7.get()}.png")}"):
-                os.remove(f"{os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}_waveform{entry_5.get()}x{entry_7.get()}.png")}")
-            wav_functions.generate_download_waveform(entry_5.get(), entry_7.get(), entry_2.get(), entry_3.get())
-            if os.path.exists(f"{os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}_waveform{entry_5.get()}x{entry_7.get()}.png")}"):
-                messagebox.showinfo(title="Download Successful!", message=f"Successfully downloaded to {os.path.join(entry_3.get(), f"{Path(entry_2.get()).stem}_waveform{entry_5.get()}x{entry_7.get()}.png")}")
+    try:
+        file_path = ''
+        if os.path.exists(entry_2.get()):
+            file_path = entry_2.get()
+        elif entry_1.get():
+            global youtube_path
+            file_path = youtube_path
+        width = entry_5.get()
+        height = entry_7.get()
+
+        if os.path.exists(entry_3.get()):
+            if os.path.exists(file_path):
+                if width and height:
+                    if os.path.exists(
+                            f"{os.path.join(entry_3.get(), f"{Path(file_path).stem}_waveform{width}x{height}.png")}"):
+                        os.remove(
+                            f"{os.path.join(entry_3.get(), f"{Path(file_path).stem}_waveform{width}x{height}.png")}")
+
+                    wav_functions.generate_download_waveform(width, height, file_path, entry_3.get())
+                    if os.path.exists(
+                            f"{os.path.join(entry_3.get(), f"{Path(file_path).stem}_waveform{width}x{height}.png")}"):
+                        messagebox.showinfo(title="Download Successful!",
+                                            message=f"Successfully downloaded to {os.path.join(entry_3.get(), f"{Path(file_path).stem}_waveform{width}x{height}.png")}")
+                else:
+                    messagebox.showerror(title="Dimensions not specified", message="Width or height field is empty")
             else:
-                messagebox.showerror(title="Dimensions not specified", message="Width or height field is empty")
+                messagebox.showerror(title="No path given", message="No valid file given")
         else:
-            messagebox.showerror(title="No path given", message="No valid download path or file given")
+            messagebox.showerror(title="No download path", message="No valid download path given")
+    except Exception as ex:
+        messagebox.showerror(title="Error", message=f"{ex}")
 
 def download_visual_eq():
     if os.path.exists(entry_3.get()):
@@ -151,7 +185,6 @@ window = Tk()
 window.geometry("1500x800")
 window.configure(bg = "#242424")
 
-
 canvas = Canvas(
     window,
     bg = "#242424",
@@ -170,7 +203,6 @@ image_1 = canvas.create_image(
     400.0,
     image=image_image_1
 )
-
 
 image_image_2 = PhotoImage(
     file=relative_to_assets("image_2.png"))
@@ -255,6 +287,66 @@ image_8 = canvas.create_image(
     image=image_image_8
 )
 
+image_image_9 = PhotoImage(
+    file=relative_to_assets("image_9.png"))
+image_9 = canvas.create_image(
+    378.0,
+    545.0,
+    image=image_image_9
+)
+
+image_image_10 = PhotoImage(
+    file=relative_to_assets("image_10.png"))
+image_10 = canvas.create_image(
+    378.0,
+    630.0,
+    image=image_image_10
+)
+
+image_image_11 = PhotoImage(
+    file=relative_to_assets("image_11.png"))
+image_11 = canvas.create_image(
+    378.0,
+    715.0,
+    image=image_image_11
+)
+
+canvas.create_text(
+    314.0,
+    524.0,
+    anchor="nw",
+    text="Text",
+    fill="#FFFFFF",
+    font=("Inika Bold", 32 * -1)
+)
+
+canvas.create_text(
+    340.0,
+    609.0,
+    anchor="nw",
+    text="Text",
+    fill="#FFFFFF",
+    font=("Inika Bold", 32 * -1)
+)
+
+canvas.create_text(
+    93.0,
+    524.0,
+    anchor="nw",
+    text="Convert from :",
+    fill="#FFFFFF",
+    font=("Inika Bold", 32 * -1)
+)
+
+canvas.create_text(
+    93.0,
+    609.0,
+    anchor="nw",
+    text="Resample from :",
+    fill="#FFFFFF",
+    font=("Inika Bold", 32 * -1)
+)
+
 canvas.create_text(
     785.0,
     111.0,
@@ -262,6 +354,30 @@ canvas.create_text(
     text="Width",
     fill="#FFFFFF",
     font=("Inika Bold", 20 * -1)
+)
+
+image_image_12 = PhotoImage(
+    file=relative_to_assets("image_12.png"))
+image_12 = canvas.create_image(
+    537.0,
+    544.0,
+    image=image_image_12
+)
+
+image_image_13 = PhotoImage(
+    file=relative_to_assets("image_13.png"))
+image_13 = canvas.create_image(
+    564.0,
+    628.0,
+    image=image_image_13
+)
+
+image_image_14 = PhotoImage(
+    file=relative_to_assets("image_14.png"))
+image_14 = canvas.create_image(
+    597.0,
+    715.0,
+    image=image_image_14
 )
 
 canvas.create_text(
@@ -360,12 +476,12 @@ canvas.create_text(
     font=("Inika Bold", 40 * -1)
 )
 
-image_image_9 = PhotoImage(
-    file=relative_to_assets("image_9.png"))
-image_9 = canvas.create_image(
+image_image_15 = PhotoImage(
+    file=relative_to_assets("image_15.png"))
+image_15 = canvas.create_image(
     654.0,
     104.0,
-    image=image_image_9
+    image=image_image_15
 )
 
 canvas.create_text(
@@ -395,28 +511,28 @@ canvas.create_text(
     font=("Inika Bold", 26 * -1)
 )
 
-image_image_10 = PhotoImage(
-    file=relative_to_assets("image_10.png"))
-image_10 = canvas.create_image(
+image_image_16 = PhotoImage(
+    file=relative_to_assets("image_16.png"))
+image_16 = canvas.create_image(
     1215.0,
     158.0,
-    image=image_image_10
+    image=image_image_16
 )
 
-image_image_11 = PhotoImage(
-    file=relative_to_assets("image_11.png"))
-image_11 = canvas.create_image(
+image_image_17 = PhotoImage(
+    file=relative_to_assets("image_17.png"))
+image_17 = canvas.create_image(
     1215.0,
     387.0,
-    image=image_image_11
+    image=image_image_17
 )
 
-image_image_12 = PhotoImage(
-    file=relative_to_assets("image_12.png"))
-image_12 = canvas.create_image(
+image_image_18 = PhotoImage(
+    file=relative_to_assets("image_18.png"))
+image_18 = canvas.create_image(
     1215.0,
     641.0,
-    image=image_image_12
+    image=image_image_18
 )
 
 button_image_1 = PhotoImage(
@@ -441,14 +557,14 @@ button_2 = Button(
     image=button_image_2,
     borderwidth=0,
     highlightthickness=0,
-    command=download_wavefile,
+    command=lambda: print("button_2 clicked"),
     relief="flat"
 )
 button_2.place(
-    x=788.0,
-    y=448.0,
+    x=360.0,
+    y=690.0,
     width=147.0,
-    height=45.0
+    height=43.0
 )
 
 button_image_3 = PhotoImage(
@@ -457,10 +573,42 @@ button_3 = Button(
     image=button_image_3,
     borderwidth=0,
     highlightthickness=0,
-    command=download_visual_eq,
+    command=lambda: print("button_3 clicked"),
     relief="flat"
 )
 button_3.place(
+    x=81.0,
+    y=690.0,
+    width=147.0,
+    height=43.0
+)
+
+button_image_4 = PhotoImage(
+    file=relative_to_assets("button_4.png"))
+button_4 = Button(
+    image=button_image_4,
+    borderwidth=0,
+    highlightthickness=0,
+    command=download_wavefile,
+    relief="flat"
+)
+button_4.place(
+    x=788.0,
+    y=448.0,
+    width=147.0,
+    height=45.0
+)
+
+button_image_5 = PhotoImage(
+    file=relative_to_assets("button_5.png"))
+button_5 = Button(
+    image=button_image_5,
+    borderwidth=0,
+    highlightthickness=0,
+    command=lambda: print("button_5 clicked"),
+    relief="flat"
+)
+button_5.place(
     x=789.0,
     y=615.0,
     width=148.0,
@@ -549,7 +697,7 @@ entry_7.place(
 
 canvas.create_rectangle(
     768.0,
-    268.0000071976591,
+    268.00000719765916,
     1460.9996337890625,
     269.0879821777344,
     fill="#FFFFFF",
@@ -563,16 +711,16 @@ canvas.create_rectangle(
     fill="#FFFFFF",
     outline="")
 
-button_image_4 = PhotoImage(
-    file=relative_to_assets("button_4.png"))
-button_4 = Button(
-    image=button_image_4,
+button_image_6 = PhotoImage(
+    file=relative_to_assets("button_6.png"))
+button_6 = Button(
+    image=button_image_6,
     borderwidth=0,
     highlightthickness=0,
     command=check_input,
     relief="flat"
 )
-button_4.place(
+button_6.place(
     x=144.0,
     y=295.0,
     width=179.0,
@@ -588,52 +736,20 @@ status_text = canvas.create_text(
     font=("Inika Bold", 24 * -1)
 )
 
-button_image_5 = PhotoImage(
-    file=relative_to_assets("button_5.png"))
-button_5 = Button(
-    image=button_image_5,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: print("button_5 clicked"),
-    relief="flat"
-)
-button_5.place(
-    x=786.0,
-    y=674.0,
-    width=82.0,
-    height=65.0
-)
-
-button_image_6 = PhotoImage(
-    file=relative_to_assets("button_6.png"))
-button_6 = Button(
-    image=button_image_6,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: print("button_6 clicked"),
-    relief="flat"
-)
-button_6.place(
-    x=860.0,
-    y=675.0,
-    width=86.0,
-    height=62.0
-)
-
 button_image_7 = PhotoImage(
     file=relative_to_assets("button_7.png"))
 button_7 = Button(
     image=button_image_7,
     borderwidth=0,
     highlightthickness=0,
-    command=select_audio_file,
+    command=lambda: print("button_7 clicked"),
     relief="flat"
 )
 button_7.place(
-    x=622.0,
-    y=221.0,
-    width=66.0,
-    height=56.0
+    x=786.0,
+    y=674.0,
+    width=82.0,
+    height=65.0
 )
 
 button_image_8 = PhotoImage(
@@ -642,14 +758,78 @@ button_8 = Button(
     image=button_image_8,
     borderwidth=0,
     highlightthickness=0,
-    command=select_download_dir,
+    command=lambda: print("button_8 clicked"),
     relief="flat"
 )
 button_8.place(
+    x=860.0,
+    y=675.0,
+    width=86.0,
+    height=62.0
+)
+
+button_image_9 = PhotoImage(
+    file=relative_to_assets("button_9.png"))
+button_9 = Button(
+    image=button_image_9,
+    borderwidth=0,
+    highlightthickness=0,
+    command=select_audio_file,
+    relief="flat"
+)
+button_9.place(
+    x=622.0,
+    y=221.0,
+    width=66.0,
+    height=56.0
+)
+
+button_image_10 = PhotoImage(
+    file=relative_to_assets("button_10.png"))
+button_10 = Button(
+    image=button_image_10,
+    borderwidth=0,
+    highlightthickness=0,
+    command=select_download_dir,
+    relief="flat"
+)
+button_10.place(
     x=618.0,
     y=428.0,
     width=66.0,
     height=56.0
+)
+
+button_image_11 = PhotoImage(
+    file=relative_to_assets("button_11.png"))
+button_11 = Button(
+    image=button_image_11,
+    borderwidth=0,
+    highlightthickness=0,
+    command=lambda: print("button_11 clicked"),
+    relief="flat"
+)
+button_11.place(
+    x=296.0,
+    y=686.0,
+    width=66.0,
+    height=56.0
+)
+
+image_image_19 = PhotoImage(
+    file=relative_to_assets("image_19.png"))
+image_19 = canvas.create_image(
+    408.0,
+    543.0,
+    image=image_image_19
+)
+
+image_image_20 = PhotoImage(
+    file=relative_to_assets("image_20.png"))
+image_20 = canvas.create_image(
+    434.0,
+    629.0,
+    image=image_image_20
 )
 
 window.protocol('WM_DELETE_WINDOW', cleanup)
