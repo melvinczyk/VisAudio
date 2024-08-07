@@ -1,3 +1,4 @@
+import mimetypes
 import os.path
 
 import librosa
@@ -6,6 +7,8 @@ from matplotlib import  pyplot as plt
 import numpy as np
 from PIL import Image, ImageTk
 from pathlib import Path
+from pydub import AudioSegment
+import mimetypes
 
 
 def generate_visual_spectrogram(file_path):
@@ -51,3 +54,14 @@ def generate_download_waveform(width, height, file_path, download_path):
     librosa.display.waveshow(y=signal, sr=sr, axis='time')
     plt.title(f"{os.path.basename(file_path)}")
     plt.savefig(os.path.join(download_path, f"{Path(file_path).stem}_waveform{width}x{height}.png"), bbox_inches='tight', pad_inches=0)
+
+
+def get_audio_info(file_path):
+    audio = AudioSegment.from_file(file_path)
+    bitrate_bps = audio.frame_rate * audio.frame_width * 8
+    bitrate_kbps = bitrate_bps / 1000
+    file_type, _ = mimetypes.guess_type(file_path)
+    return bitrate_kbps, file_type
+
+def convert():
+    pass

@@ -27,48 +27,58 @@ def select_audio_file():
 def select_download_dir():
     system_operations.select_directory(entry_3)
 
+def clear_input():
+    entry_1.delete(0, 'end')
+    entry_2.delete(0, 'end')
+
 def check_input():
-    if entry_1.get() and entry_2.get():
+    input_1 = entry_1.get()
+    input_2 = entry_2.get()
+
+    if input_1 and input_2:
         entry_1.delete(0, 'end')
         entry_2.delete(0, 'end')
         canvas.itemconfig(status_text, text=" Error: both fields entered", fill="#fc0303")
-    elif entry_1.get():
+    elif input_1:
         check_temp()
         if system_operations.is_connected():
             try:
                 global youtube_path
-                youtube_path = youtube_functions.view_youtube_audio(entry_1.get())
-                canvas.itemconfig(status_text, text=f" Link Uploaded", fill='#03fc0b')
-                if os.path.isfile('../../temp/spectrogram.png'):
-                    os.remove('../../temp/spectrogram.png')
-                if os.path.isfile('../../temp/waveform.png'):
-                    os.remove('../../temp/waveform.png')
+                youtube_path = youtube_functions.view_youtube_audio(input_1)
+                canvas.itemconfig(status_text, text=" Link Uploaded", fill='#03fc0b')
+
+                for temp_file in ['../../temp/spectrogram.png', '../../temp/waveform.png']:
+                    if os.path.isfile(temp_file):
+                        os.remove(temp_file)
+                bitrate, file_type = wav_functions.get_audio_info(youtube_path)
+                canvas.itemconfig(convert_text, text=f"{file_type}")
+                canvas.itemconfig(resample_text, text=f"{bitrate}kbps")
                 show_spectrogram(youtube_path)
                 show_waveform(youtube_path)
             except Exception as ex:
                 print(ex)
-                canvas.itemconfig(status_text, text=f" Link Error", fill="#fc0303")
+                canvas.itemconfig(status_text, text=" Link Error", fill="#fc0303")
                 entry_1.delete(0, 'end')
-
-
-    elif entry_2.get():
+    elif input_2:
         check_temp()
-        file_path = entry_2.get()
+        file_path = input_2
         if not os.path.exists(file_path):
             canvas.itemconfig(status_text, text=f" File DNE: {os.path.basename(file_path)}", fill='#fc0303')
             entry_2.delete(0, 'end')
             return
-        # TODO implement file conversion logic
         canvas.itemconfig(status_text, text=" File Inputted", fill='#03fc0b')
-        if os.path.isfile('../../temp/spectrogram.png'):
-            os.remove('../../temp/spectrogram.png')
-        if os.path.isfile('../../temp/waveform.png'):
-            os.remove('../../temp/waveform.png')
+
+        for temp_file in ['../../temp/spectrogram.png', '../../temp/waveform.png']:
+            if os.path.isfile(temp_file):
+                os.remove(temp_file)
+        bitrate, file_type = wav_functions.get_audio_info(file_path)
+        canvas.itemconfig(convert_text, text=f"{file_type}")
+        canvas.itemconfig(resample_text, text=f"{bitrate}kbps")
         show_spectrogram(file_path)
         show_waveform(file_path)
-        pass
     else:
         canvas.itemconfig(status_text, text=" Not Submitted", fill="#fcd303")
+
 
 def show_spectrogram(file_path):
     if os.path.exists(file_path):
@@ -77,7 +87,6 @@ def show_spectrogram(file_path):
         label = tkinter.Label(image=spectrogram)
         label.image =  spectrogram
         label.place(x=975, y=56.0)
-        # canvas.create_image(750, 400, anchor='nw', image=image)
 
 def show_waveform(file_path):
     if os.path.exists(file_path):
@@ -154,7 +163,7 @@ def download_wavefile():
 def download_visual_eq():
     if os.path.exists(entry_3.get()):
         print("Download visual eq button")
-        # TODO Implement spectrogram download
+        # TODO Implement visual eq download
     else:
         messagebox.showerror(title="No path given", message="No valid download path given")
 
@@ -218,7 +227,7 @@ canvas.create_text(
     anchor="nw",
     text="Status:",
     fill="#FFFFFF",
-    font=("Inika Bold", 24 * -1)
+    font=("Calibri Bold", 24 * -1)
 )
 
 image_image_3 = PhotoImage(
@@ -259,7 +268,7 @@ canvas.create_text(
     anchor="nw",
     text="Valid YouTube Link",
     fill="#D9D9D9",
-    font=("Inika Bold", 24 * -1)
+    font=("Calibri Bold", 24 * -1)
 )
 
 canvas.create_text(
@@ -268,7 +277,7 @@ canvas.create_text(
     anchor="nw",
     text="Audio File Path",
     fill="#D9D9D9",
-    font=("Inika Bold", 24 * -1)
+    font=("Calibri Bold", 24 * -1)
 )
 
 image_image_7 = PhotoImage(
@@ -311,40 +320,40 @@ image_11 = canvas.create_image(
     image=image_image_11
 )
 
-canvas.create_text(
-    314.0,
-    524.0,
+convert_text = canvas.create_text(
+    270.0,
+    522.0,
     anchor="nw",
-    text="Text",
-    fill="#FFFFFF",
-    font=("Inika Bold", 32 * -1)
+    text="",
+    fill="#03fc0b",
+    font=("Calibri Bold", 32 * -1)
+)
+
+resample_text = canvas.create_text(
+    295.0,
+    612.0,
+    anchor="nw",
+    text="",
+    fill="#03fc0b",
+    font=("Calibri Bold", 26 * -1)
 )
 
 canvas.create_text(
-    340.0,
-    609.0,
-    anchor="nw",
-    text="Text",
-    fill="#FFFFFF",
-    font=("Inika Bold", 32 * -1)
-)
-
-canvas.create_text(
-    93.0,
-    524.0,
+    70.0,
+    522.0,
     anchor="nw",
     text="Convert from :",
     fill="#FFFFFF",
-    font=("Inika Bold", 32 * -1)
+    font=("Calibri Bold", 32 * -1)
 )
 
 canvas.create_text(
-    93.0,
-    609.0,
+    70.0,
+    607.0,
     anchor="nw",
     text="Resample from :",
     fill="#FFFFFF",
-    font=("Inika Bold", 32 * -1)
+    font=("Calibri Bold", 32 * -1)
 )
 
 canvas.create_text(
@@ -353,22 +362,22 @@ canvas.create_text(
     anchor="nw",
     text="Width",
     fill="#FFFFFF",
-    font=("Inika Bold", 20 * -1)
+    font=("Calibri Bold", 20 * -1)
 )
 
 image_image_12 = PhotoImage(
     file=relative_to_assets("image_12.png"))
 image_12 = canvas.create_image(
-    537.0,
-    544.0,
+    580.0,
+    545.0,
     image=image_image_12
 )
 
 image_image_13 = PhotoImage(
     file=relative_to_assets("image_13.png"))
 image_13 = canvas.create_image(
-    564.0,
-    628.0,
+    580.0,
+    629.0,
     image=image_image_13
 )
 
@@ -386,7 +395,7 @@ canvas.create_text(
     anchor="nw",
     text="Width",
     fill="#FFFFFF",
-    font=("Inika Bold", 20 * -1)
+    font=("Calibri Bold", 20 * -1)
 )
 
 canvas.create_text(
@@ -395,7 +404,7 @@ canvas.create_text(
     anchor="nw",
     text="Height",
     fill="#FFFFFF",
-    font=("Inika Bold", 20 * -1)
+    font=("Calibri Bold", 20 * -1)
 )
 
 canvas.create_text(
@@ -404,7 +413,7 @@ canvas.create_text(
     anchor="nw",
     text="Height",
     fill="#FFFFFF",
-    font=("Inika Bold", 20 * -1)
+    font=("Calibri Bold", 20 * -1)
 )
 
 entry_image_1 = PhotoImage(
@@ -418,6 +427,7 @@ entry_1 = Entry(
     bd=0,
     bg="#D9D9D9",
     fg="#000716",
+    font="Calibri 16",
     highlightthickness=0
 )
 entry_1.place(
@@ -438,6 +448,7 @@ entry_2 = Entry(
     bd=0,
     bg="#D9D9D9",
     fg="#000716",
+    font="Calibri 16",
     highlightthickness=0
 )
 entry_2.place(
@@ -458,6 +469,7 @@ entry_3 = Entry(
     bd=0,
     bg="#D9D9D9",
     fg="#000716",
+font="Calibri 16",
     highlightthickness=0
 )
 entry_3.place(
@@ -473,7 +485,7 @@ canvas.create_text(
     anchor="nw",
     text="or",
     fill="#FFFFFF",
-    font=("Inika Bold", 40 * -1)
+    font=("Calibri Bold", 40 * -1)
 )
 
 image_image_15 = PhotoImage(
@@ -490,7 +502,7 @@ canvas.create_text(
     anchor="nw",
     text="Spectrogram",
     fill="#FFFFFF",
-    font=("Inika Bold", 26 * -1)
+    font=("Calibri Bold", 26 * -1)
 )
 
 canvas.create_text(
@@ -499,7 +511,7 @@ canvas.create_text(
     anchor="nw",
     text="Waveform",
     fill="#FFFFFF",
-    font=("Inika Bold", 26 * -1)
+    font=("Calibri Bold", 26 * -1)
 )
 
 canvas.create_text(
@@ -508,7 +520,7 @@ canvas.create_text(
     anchor="nw",
     text="Visual EQ",
     fill="#FFFFFF",
-    font=("Inika Bold", 26 * -1)
+    font=("Calibri Bold", 26 * -1)
 )
 
 image_image_16 = PhotoImage(
@@ -561,7 +573,7 @@ button_2 = Button(
     relief="flat"
 )
 button_2.place(
-    x=360.0,
+    x=350.0,
     y=690.0,
     width=147.0,
     height=43.0
@@ -577,7 +589,7 @@ button_3 = Button(
     relief="flat"
 )
 button_3.place(
-    x=81.0,
+    x=140.0,
     y=690.0,
     width=147.0,
     height=43.0
@@ -626,6 +638,7 @@ entry_4 = Entry(
     bd=0,
     bg="#D9D9D9",
     fg="#000716",
+font="Calibri 16",
     highlightthickness=0
 )
 entry_4.place(
@@ -646,6 +659,7 @@ entry_5 = Entry(
     bd=0,
     bg="#D9D9D9",
     fg="#000716",
+font="Calibri 16",
     highlightthickness=0
 )
 entry_5.place(
@@ -666,6 +680,7 @@ entry_6 = Entry(
     bd=0,
     bg="#D9D9D9",
     fg="#000716",
+font="Calibri 16",
     highlightthickness=0
 )
 entry_6.place(
@@ -686,6 +701,7 @@ entry_7 = Entry(
     bd=0,
     bg="#D9D9D9",
     fg="#000716",
+font="Calibri 16",
     highlightthickness=0
 )
 entry_7.place(
@@ -733,7 +749,7 @@ status_text = canvas.create_text(
     anchor="nw",
     text=" Not Submitted",
     fill="#fcd303",
-    font=("Inika Bold", 24 * -1)
+    font=("Calibri Bold", 24 * -1)
 )
 
 button_image_7 = PhotoImage(
@@ -810,8 +826,24 @@ button_11 = Button(
     relief="flat"
 )
 button_11.place(
-    x=296.0,
+    x=70.0,
     y=686.0,
+    width=66.0,
+    height=56.0
+)
+
+button_image_12 = PhotoImage(
+    file=relative_to_assets("button_11.png"))
+button_12 = Button(
+    image=button_image_12,
+    borderwidth=0,
+    highlightthickness=0,
+    command=clear_input,
+    relief="flat"
+)
+button_12.place(
+    x=80.0,
+    y=293.0,
     width=66.0,
     height=56.0
 )
@@ -819,7 +851,7 @@ button_11.place(
 image_image_19 = PhotoImage(
     file=relative_to_assets("image_19.png"))
 image_19 = canvas.create_image(
-    408.0,
+    445.0,
     543.0,
     image=image_image_19
 )
@@ -827,7 +859,7 @@ image_19 = canvas.create_image(
 image_image_20 = PhotoImage(
     file=relative_to_assets("image_20.png"))
 image_20 = canvas.create_image(
-    434.0,
+    445.0,
     629.0,
     image=image_image_20
 )
