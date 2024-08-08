@@ -63,5 +63,20 @@ def get_audio_info(file_path):
     file_type, _ = mimetypes.guess_type(file_path)
     return bitrate_kbps, file_type
 
-def convert():
-    pass
+def convert(file_path, convert_type):
+    try:
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f"The file {file_path} does not exist")
+
+        file_name, file_extension = os.path.splitext(os.path.basename(file_path))
+        dir = os.path.dirname(file_path)
+
+        audio = AudioSegment.from_file(file_path)
+
+        output_file_path = os.path.join(dir, f"{file_name}.{convert_type}")
+        audio.export(output_file_path, format=convert_type)
+        return output_file_path
+    except FileNotFoundError as ex:
+        print(f"Error: {ex}")
+    except Exception as ex:
+        print(f"Error: {ex}")

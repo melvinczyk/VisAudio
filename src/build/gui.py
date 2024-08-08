@@ -7,7 +7,7 @@ from pathlib import Path
 
 # from tkinter import *
 # Explicit imports to satisfy Flake8
-from tkinter import Tk, Canvas, Entry, Button, PhotoImage
+from tkinter import Tk, Canvas, Entry, Button, PhotoImage, StringVar, ttk
 from src.actions import system_operations
 from src.audio import wav_functions
 from src.audio import youtube_functions
@@ -17,7 +17,9 @@ import os
 
 OUTPUT_PATH = str(Path(__file__).parent)
 ASSETS_PATH = OUTPUT_PATH + r"\assets\frame0"
-global youtube_path
+youtube_path = ''
+selected_convert = ''
+selected_download = ''
 
 ### Functions ###
 
@@ -27,9 +29,29 @@ def select_audio_file():
 def select_download_dir():
     system_operations.select_directory(entry_3)
 
-def clear_input():
+def reset():
+    global youtube_path
+    global  selected_convert
     entry_1.delete(0, 'end')
     entry_2.delete(0, 'end')
+    entry_3.delete(0, 'end')
+    entry_4.delete(0, 'end')
+    entry_5.delete(0, 'end')
+    entry_6.delete(0, 'end')
+    entry_7.delete(0, 'end')
+    entry_8.delete(0, 'end')
+    files = os.listdir('../../temp')
+    for file in files:
+        file_path = os.path.join('../../temp', file)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+    canvas.itemconfig(status_text, text=" Not Submitted", fill="#fcd303")
+    canvas.itemconfig(resample_text, text='')
+    canvas.itemconfig(convert_text, text='')
+    youtube_path = ''
+    selected_convert = ''
+
+
 
 def check_input():
     input_1 = entry_1.get()
@@ -183,9 +205,22 @@ def cleanup():
     except OSError:
         pass
 
+
+
 def check_temp():
     if not os.path.exists('../../temp'):
         os.makedirs('../../temp')
+
+def on_select_convert(event):
+    global selected_convert
+    selected_convert = convert_combobox.get()
+    print(f"Selected option = {selected_convert}")
+
+def on_select_download(event):
+    global selected_download
+    selected_download = download_combobox.get()
+    print(f"Selected option = {selected_download}")
+
 
 ### GUI Implementation ###
 
@@ -193,6 +228,14 @@ window = Tk()
 
 window.geometry("1500x800")
 window.configure(bg = "#242424")
+
+convert_options = ['','mp3', 'wav', 'ogg', 'aac', 'flac']
+convert_combobox = ttk.Combobox(window, values=convert_options, state='readonly', font=('Calibri', 16))
+convert_combobox.place(x=500, y=525, height=30, width=150)
+
+download_options = ['', 'Converted File', 'Resampled File', 'Combined']
+download_combobox = ttk.Combobox(window, values=download_options, state='readonly', font=('Calibri', 16))
+download_combobox.place(x=517, y=695, height=30, width=150)
 
 canvas = Canvas(
     window,
@@ -315,7 +358,7 @@ image_10 = canvas.create_image(
 image_image_11 = PhotoImage(
     file=relative_to_assets("image_11.png"))
 image_11 = canvas.create_image(
-    378.0,
+    547.0,
     715.0,
     image=image_image_11
 )
@@ -420,7 +463,7 @@ entry_image_1 = PhotoImage(
     file=relative_to_assets("entry_1.png"))
 entry_bg_1 = canvas.create_image(
     355.0,
-    104.5,
+    103.5,
     image=entry_image_1
 )
 entry_1 = Entry(
@@ -441,7 +484,7 @@ entry_image_2 = PhotoImage(
     file=relative_to_assets("entry_2.png"))
 entry_bg_2 = canvas.create_image(
     356.0,
-    250.5,
+    249.5,
     image=entry_image_2
 )
 entry_2 = Entry(
@@ -569,13 +612,13 @@ button_2 = Button(
     image=button_image_2,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_2 clicked"),
+    command=lambda: print(f"{selected_convert}"),
     relief="flat"
 )
 button_2.place(
-    x=350.0,
+    x=400.0,
     y=690.0,
-    width=147.0,
+    width=102,
     height=43.0
 )
 
@@ -589,9 +632,9 @@ button_3 = Button(
     relief="flat"
 )
 button_3.place(
-    x=140.0,
+    x=70.0,
     y=690.0,
-    width=147.0,
+    width=95.0,
     height=43.0
 )
 
@@ -711,6 +754,38 @@ entry_7.place(
     height=30.0
 )
 
+entry_image_8 = PhotoImage(
+    file=relative_to_assets("entry_8.png"))
+entry_bg_8 = canvas.create_image(
+    550.0,
+    622.5,
+    image=entry_image_8
+)
+entry_8 = Entry(
+    bd=0,
+    bg="#D9D9D9",
+    fg="#000716",
+    font="Calibri 24",
+    highlightthickness=0
+)
+entry_8.place(
+    x=500.0,
+    y=607.0,
+    width=90.0,
+    height=30.0
+)
+
+canvas.create_text(
+    610.0,
+    607.0,
+    anchor="nw",
+    text="kbps",
+    fill="#FFFFFF",
+    font=("Calibri Bold", 24 * -1)
+)
+
+
+
 canvas.create_rectangle(
     768.0,
     268.00000719765916,
@@ -826,7 +901,7 @@ button_11 = Button(
     relief="flat"
 )
 button_11.place(
-    x=70.0,
+    x=290.0,
     y=686.0,
     width=66.0,
     height=56.0
@@ -838,7 +913,7 @@ button_12 = Button(
     image=button_image_12,
     borderwidth=0,
     highlightthickness=0,
-    command=clear_input,
+    command=reset,
     relief="flat"
 )
 button_12.place(
@@ -864,6 +939,44 @@ image_20 = canvas.create_image(
     image=image_image_20
 )
 
+image_image_21 = PhotoImage(
+    file=relative_to_assets("image_21.png"))
+image_21 = canvas.create_image(
+    122.0,
+    715.0,
+    image=image_image_21
+)
+
+image_image_22 = PhotoImage(
+    file=relative_to_assets("image_22.png"))
+image_22 = canvas.create_image(
+    290.0,
+    715.0,
+    image=image_image_22
+)
+
+canvas.create_text(
+    215.0,
+    686.0,
+    anchor="nw",
+    text="Refresh",
+    fill="#FFFFFF",
+    font=("Calibri Bold", 20 * -1)
+)
+
+canvas.create_text(
+    215.0,
+    710.0,
+    anchor="nw",
+    text="Graphs",
+    fill="#FFFFFF",
+    font=("Calibri Bold", 20 * -1)
+)
+
+convert_combobox.lift()
+download_combobox.lift()
+convert_combobox.bind("<<ComboboxSelected>>", on_select_convert)
+download_combobox.bind("<<ComboboxSelected>>", on_select_download)
 window.protocol('WM_DELETE_WINDOW', cleanup)
 window.resizable(False, False)
 window.mainloop()
