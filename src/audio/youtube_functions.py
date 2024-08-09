@@ -1,13 +1,35 @@
-import os.path
-from pydub import AudioSegment
-import pytube
+import os
+import yt_dlp as ytdlp
+import sys
 
 def view_youtube_audio(url: str) -> str:
-    yt = pytube.YouTube(url)
-    audio_stream = yt.streams.filter(only_audio=True).first()
-    downloaded_file = audio_stream.download(output_path='../../temp')
-    base, ext = os.path.splitext(downloaded_file)
-    new_file = base + '.wav'
-    AudioSegment.from_file(downloaded_file).export(new_file, format='wav')
-    os.remove(f'../../temp/{yt.title}.mp4')
-    return new_file
+    try:
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': '../../temp/%(title)s.%(ext)s',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'flac',
+                'preferredquality': '192',
+            }],
+            'prefer_ffmpeg': True,
+            'keepvideo': False
+        }
+
+        with ytdlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(url, download=True)
+            title = info_dict.get('title', None)
+            if title:
+                flac_file = os.path.join('../../temp', f"{title}.flac")
+                return flac_file
+
+        return None
+
+    except Exception as ex:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(f"Error: {exc_type}, File: {fname}, Line: {exc_tb.tb_lineno}")
+        return None
+
+flac_file_path = view_youtube_audio('https://youtu.be/AGCuED8nWug?si=PWXjOiNshHDx8wp0')
+print(flac_file_path)

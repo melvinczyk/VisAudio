@@ -13,7 +13,7 @@ from src.audio import wav_functions
 from src.audio import youtube_functions
 from tkinter import messagebox
 import os
-
+import sys
 
 OUTPUT_PATH = str(Path(__file__).parent)
 ASSETS_PATH = OUTPUT_PATH + r"\assets\frame0"
@@ -79,8 +79,13 @@ def check_input():
                 show_waveform(youtube_path)
             except Exception as ex:
                 print(ex)
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(exc_type, fname, exc_tb.tb_lineno)
                 canvas.itemconfig(status_text, text=" Link Error", fill="#fc0303")
+                messagebox.showerror(message=f"{ex}")
                 entry_1.delete(0, 'end')
+                youtube_path = ''
     elif input_2:
         check_temp()
         file_path = input_2
@@ -229,7 +234,7 @@ window = Tk()
 window.geometry("1500x800")
 window.configure(bg = "#242424")
 
-convert_options = ['','mp3', 'wav', 'ogg', 'aac', 'flac']
+convert_options = ['','mp3', 'wav', 'ogg', 'm4a', 'flac']
 convert_combobox = ttk.Combobox(window, values=convert_options, state='readonly', font=('Calibri', 16))
 convert_combobox.place(x=500, y=525, height=30, width=150)
 
@@ -365,11 +370,11 @@ image_11 = canvas.create_image(
 
 convert_text = canvas.create_text(
     270.0,
-    522.0,
+    526.0,
     anchor="nw",
     text="",
     fill="#03fc0b",
-    font=("Calibri Bold", 32 * -1)
+    font=("Calibri Bold", 26 * -1)
 )
 
 resample_text = canvas.create_text(
