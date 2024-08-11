@@ -18,8 +18,11 @@ import sys
 OUTPUT_PATH = str(Path(__file__).parent)
 ASSETS_PATH = OUTPUT_PATH + r"\assets\frame0"
 youtube_path = ''
+file_path = ''
+
 selected_convert = ''
 selected_download = ''
+input_type = ''
 
 ### Functions ###
 
@@ -32,6 +35,8 @@ def select_download_dir():
 def reset():
     global youtube_path
     global  selected_convert
+    global  input_type
+    global file_path
     entry_1.delete(0, 'end')
     entry_2.delete(0, 'end')
     entry_3.delete(0, 'end')
@@ -49,13 +54,15 @@ def reset():
     canvas.itemconfig(resample_text, text='')
     canvas.itemconfig(convert_text, text='')
     youtube_path = ''
+    file_path = ''
     selected_convert = ''
-
+    input_type = ''
 
 
 def check_input():
     input_1 = entry_1.get()
     input_2 = entry_2.get()
+    global input_type
 
     if input_1 and input_2:
         entry_1.delete(0, 'end')
@@ -77,6 +84,7 @@ def check_input():
                 canvas.itemconfig(resample_text, text=f"{bitrate}kbps")
                 show_spectrogram(youtube_path)
                 show_waveform(youtube_path)
+                input_type = 'link'
             except Exception as ex:
                 print(ex)
                 exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -86,6 +94,7 @@ def check_input():
                 messagebox.showerror(message=f"{ex}")
                 entry_1.delete(0, 'end')
                 youtube_path = ''
+                input_type = ''
     elif input_2:
         check_temp()
         file_path = input_2
@@ -103,8 +112,10 @@ def check_input():
         canvas.itemconfig(resample_text, text=f"{bitrate}kbps")
         show_spectrogram(file_path)
         show_waveform(file_path)
+        input_type = 'file'
     else:
         canvas.itemconfig(status_text, text=" Not Submitted", fill="#fcd303")
+        input_type = ''
 
 
 def show_spectrogram(file_path):
@@ -210,8 +221,6 @@ def cleanup():
     except OSError:
         pass
 
-
-
 def check_temp():
     if not os.path.exists('../../temp'):
         os.makedirs('../../temp')
@@ -227,18 +236,20 @@ def on_select_download(event):
     print(f"Selected option = {selected_download}")
 
 
+
 ### GUI Implementation ###
 
 window = Tk()
 
 window.geometry("1500x800")
 window.configure(bg = "#242424")
+window.title("VisAudio")
 
 convert_options = ['','mp3', 'wav', 'ogg', 'm4a', 'flac']
 convert_combobox = ttk.Combobox(window, values=convert_options, state='readonly', font=('Calibri', 16))
 convert_combobox.place(x=500, y=525, height=30, width=150)
 
-download_options = ['', 'Converted File', 'Resampled File', 'Combined']
+download_options = ['', 'Converted File', 'Resampled File', 'Combined', 'Raw (Link Only)']
 download_combobox = ttk.Combobox(window, values=download_options, state='readonly', font=('Calibri', 16))
 download_combobox.place(x=517, y=695, height=30, width=150)
 

@@ -30,6 +30,3 @@ def view_youtube_audio(url: str) -> str:
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         print(f"Error: {exc_type}, File: {fname}, Line: {exc_tb.tb_lineno}")
         return None
-
-flac_file_path = view_youtube_audio('https://youtu.be/AGCuED8nWug?si=PWXjOiNshHDx8wp0')
-print(flac_file_path)

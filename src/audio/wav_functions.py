@@ -8,6 +8,8 @@ import numpy as np
 from PIL import Image, ImageTk
 from pathlib import Path
 from pydub import AudioSegment
+import noisereduce as nr
+import soundfile as sf
 import mimetypes
 
 
@@ -63,6 +65,15 @@ def get_audio_info(file_path):
     file_type, _ = mimetypes.guess_type(file_path)
     return bitrate_kbps, file_type
 
+def clean(file_path):
+    mime_type, _ = mimetypes.guess_type(file_path)
+    file_extension = mimetypes.guess_extension(mime_type)
+    signal, sr = librosa.load(file_path)
+    cleaned_audio = nr.reduce_noise(y=signal, sr=sr)
+    output_path = file_path.replace(file_extension, '_clean' + file_extension)
+    sf.write(output_path, cleaned_audio, sr)
+    return output_path
+
 def convert(file_path, convert_type):
     try:
         if not os.path.isfile(file_path):
@@ -80,3 +91,4 @@ def convert(file_path, convert_type):
         print(f"Error: {ex}")
     except Exception as ex:
         print(f"Error: {ex}")
+
